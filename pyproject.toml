@@ -1,0 +1,64 @@
+[project]
+name = "stock-assistant"
+version = "0.1.0"
+description = "A股AI辅助炒股系统"
+requires-python = ">=3.11"
+dependencies = [
+    # CLI
+    "typer>=0.9",
+    "rich>=13.0",
+    # Config
+    "pydantic>=2.0",
+    "pydantic-settings>=2.0",
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0",
+    # Database
+    "sqlalchemy>=2.0",
+    # Data
+    "akshare>=1.14",
+    "pandas>=2.1",
+    "numpy>=1.26",
+    "ta>=0.11",
+    # LLM
+    "anthropic>=0.40",
+    "openai>=1.50",
+    "httpx>=0.27",
+    # Scraping
+    "beautifulsoup4>=4.12",
+    "lxml>=5.0",
+    # Backtesting
+    "backtrader>=1.9",
+    # Financial reports
+    "pdfplumber>=0.11",
+    # Reports
+    "jinja2>=3.1",
+    # Scheduling
+    "apscheduler>=3.10",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.4",
+]
+web = [
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "streamlit>=1.35",
+    "python-multipart>=0.0.9",
+]
+
+[project.scripts]
+stock-assistant = "stock_assistant.app:main"
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

@@ -1,0 +1,30 @@
+app:
+  name: "A股AI助手"
+  data_dir: "./data"
+  log_level: "INFO"
+
+database:
+  url: "sqlite:///./data/db/stock_assistant.db"
+
+market:
+  default_exchange: "A"
+  trading_hours:
+    morning: ["09:30", "11:30"]
+    afternoon: ["13:00", "15:00"]
+
+sentiment:
+  platforms: ["xueqiu", "eastmoney"]
+  scrape_interval_minutes: 30
+  max_posts_per_scan: 100
+
+paper_trading:
+  initial_capital: 1000000
+  max_position_pct: 0.10
+  agents: ["technical", "fundamental", "sentiment"]
+
+reports:
+  output_dir: "./data/reports"
+  format: "markdown"
+  schedule:
+    morning_brief: "08:30"
+    evening_review: "16:00"

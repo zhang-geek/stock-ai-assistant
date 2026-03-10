@@ -1,0 +1,19 @@
+task_routing:
+  sentiment_analysis: deepseek
+  data_extraction: deepseek
+  report_generation: deepseek
+  trading_coach: claude
+  agent_reasoning: claude
+  financial_analysis: claude
+
+providers:
+  claude:
+    model: "claude-sonnet-4-20250514"
+    max_tokens: 8192
+  deepseek:
+    model: "deepseek-chat"
+    base_url: "https://api.deepseek.com"
+    max_tokens: 4096
+  openai:
+    model: "gpt-4o-mini"
+    max_tokens: 4096
