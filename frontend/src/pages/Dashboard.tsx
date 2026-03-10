@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Table, Statistic, Spin, message, Tag, Space } from 'antd';
+import { Card, Row, Col, Table, Statistic, message, Tag, Space } from 'antd';
 import { ArrowUpOutlined, ArrowDownOutlined, ReloadOutlined } from '@ant-design/icons';
 import { quoteApi } from '../api/quote';
 import type { IndexQuote, Quote, Sector } from '../types';
+import { SkeletonDashboard } from '../components/Skeleton';
+import '../styles/animations.css';
 
 const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [indices, setIndices] = useState<IndexQuote[]>([]);
   const [gainers, setGainers] = useState<Quote[]>([]);
   const [losers, setLosers] = useState<Quote[]>([]);
@@ -17,7 +20,11 @@ const Dashboard: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = async (isRefresh = false) => {
+    if (isRefresh) {
+      setRefreshing(true);
+    }
+
     try {
       const [indexRes, gainersRes, losersRes, sectorsRes] = await Promise.all([
         quoteApi.getIndex(),
@@ -30,10 +37,15 @@ const Dashboard: React.FC = () => {
       setGainers(gainersRes.data.data);
       setLosers(losersRes.data.data);
       setSectors(sectorsRes.data.data);
+
+      if (isRefresh) {
+        message.success('数据已更新');
+      }
     } catch (error) {
       message.error('数据加载失败');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -111,31 +123,28 @@ const Dashboard: React.FC = () => {
   ];
 
   if (loading) {
-    return (
-      <div style={{ textAlign: 'center', padding: '120px 0' }}>
-        <Spin size="large" tip="加载市场数据中..." />
-      </div>
-    );
+    return <SkeletonDashboard />;
   }
 
   return (
     <div>
-      <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="fade-in-up">
         <h1 style={{ margin: 0, fontSize: 28, fontWeight: 700, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
           市场概览
         </h1>
         <ReloadOutlined
-          onClick={fetchData}
+          onClick={() => fetchData(true)}
+          className={`refresh-icon ${refreshing ? 'spinning' : ''}`}
           style={{ fontSize: 20, cursor: 'pointer', color: '#667eea' }}
-          spin={loading}
         />
       </div>
 
       <Row gutter={[24, 24]}>
-        {indices.map((index) => (
-          <Col xs={24} sm={12} lg={8} key={index.symbol}>
+        {indices.map((index, i) => (
+          <Col xs={24} sm={12} lg={8} key={index.symbol} className={`fade-in-up delay-${(i + 1) * 100}`}>
             <Card
               hoverable
+              className="interactive-card"
               style={{
                 background: index.change_pct >= 0
                   ? 'linear-gradient(135deg, #fff5f5 0%, #ffe7e7 100%)'
@@ -165,7 +174,7 @@ const Dashboard: React.FC = () => {
       </Row>
 
       <Row gutter={[24, 24]} style={{ marginTop: 32 }}>
-        <Col xs={24} lg={12}>
+        <Col xs={24} lg={12} className="slide-in-left delay-400">
           <Card
             title={
               <Space>
@@ -175,6 +184,7 @@ const Dashboard: React.FC = () => {
             }
             extra={<Tag color="red">TOP 10</Tag>}
             hoverable
+            className="interactive-card"
           >
             <Table
               dataSource={gainers}
@@ -185,7 +195,7 @@ const Dashboard: React.FC = () => {
             />
           </Card>
         </Col>
-        <Col xs={24} lg={12}>
+        <Col xs={24} lg={12} className="slide-in-right delay-400">
           <Card
             title={
               <Space>
@@ -195,6 +205,7 @@ const Dashboard: React.FC = () => {
             }
             extra={<Tag color="green">TOP 10</Tag>}
             hoverable
+            className="interactive-card"
           >
             <Table
               dataSource={losers}
@@ -208,11 +219,12 @@ const Dashboard: React.FC = () => {
       </Row>
 
       <Row style={{ marginTop: 32 }}>
-        <Col span={24}>
+        <Col span={24} className="fade-in-up delay-500">
           <Card
             title={<span style={{ fontSize: 18, fontWeight: 600 }}>板块表现</span>}
             extra={<Tag color="blue">实时更新</Tag>}
             hoverable
+            className="interactive-card"
           >
             <Table
               dataSource={sectors}

@@ -8,3 +8,8 @@ dist/
 build/
 .venv/
 notebooks/.ipynb_checkpoints/
+
+# 测试相关
+tests/screenshots/
+.playwright-mcp/
+*.png

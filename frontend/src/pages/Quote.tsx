@@ -3,6 +3,8 @@ import { Input, Button, Card, Spin, Row, Col, Statistic, message, Space, Divider
 import { SearchOutlined, ArrowUpOutlined, ArrowDownOutlined, LineChartOutlined } from '@ant-design/icons';
 import { quoteApi } from '../api/quote';
 import type { Quote as QuoteType, DailyBar } from '../types';
+import EmptyState from '../components/EmptyState';
+import '../styles/animations.css';
 
 export default function Quote() {
   const [symbol, setSymbol] = useState('');
@@ -34,12 +36,13 @@ export default function Quote() {
   };
 
   return (
-    <div>
+    <div className="fade-in-up">
       <Card
         style={{
           background: 'linear-gradient(135deg, #667eea15 0%, #764ba215 100%)',
           marginBottom: 24
         }}
+        className="interactive-card"
       >
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <div>
@@ -57,31 +60,35 @@ export default function Quote() {
               输入股票代码查询实时行情和历史数据
             </p>
           </div>
-          <Input.Search
-            placeholder="输入股票代码（如：000001、600000、300750）"
-            value={symbol}
-            onChange={(e) => setSymbol(e.target.value)}
-            onSearch={handleSearch}
-            enterButton={
-              <Button
-                type="primary"
-                icon={<SearchOutlined />}
-                size="large"
-                style={{ height: 48 }}
-              >
-                查询
-              </Button>
-            }
-            size="large"
-            loading={loading}
-            style={{ maxWidth: 600 }}
-          />
+          <div className="enhanced-input">
+            <Input.Search
+              placeholder="输入股票代码（如：000001、600000、300750）"
+              value={symbol}
+              onChange={(e) => setSymbol(e.target.value)}
+              onSearch={handleSearch}
+              enterButton={
+                <Button
+                  type="primary"
+                  icon={<SearchOutlined />}
+                  size="large"
+                  className="ripple-button"
+                  style={{ height: 48 }}
+                >
+                  查询
+                </Button>
+              }
+              size="large"
+              loading={loading}
+              style={{ maxWidth: 600 }}
+            />
+          </div>
         </Space>
       </Card>
 
       {loading && (
-        <div style={{ textAlign: 'center', padding: '80px 0' }}>
-          <Spin size="large" tip="正在获取行情数据..." />
+        <div style={{ textAlign: 'center', padding: '80px 0' }} className="fade-in">
+          <Spin size="large" />
+          <p style={{ marginTop: 16, color: '#8c8c8c' }}>正在获取行情数据...</p>
         </div>
       )}
 
@@ -106,14 +113,16 @@ export default function Quote() {
                 : 'linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)',
             }}
             hoverable
+            className="interactive-card scale-in"
           >
             <Row gutter={[24, 24]}>
-              <Col xs={24} sm={12} lg={6}>
+              <Col xs={24} sm={12} lg={6} className="fade-in-up delay-100">
                 <Card
                   style={{
                     background: '#fff',
                     borderLeft: `4px solid ${quote.change_pct >= 0 ? '#ff4d4f' : '#52c41a'}`
                   }}
+                  className="interactive-card"
                 >
                   <Statistic
                     title={<span style={{ fontSize: 16, fontWeight: 600 }}>最新价</span>}
@@ -133,7 +142,7 @@ export default function Quote() {
                   />
                 </Card>
               </Col>
-              <Col xs={12} sm={6} lg={4}>
+              <Col xs={12} sm={6} lg={4} className="fade-in-up delay-200">
                 <Statistic
                   title="开盘"
                   value={quote.open}
@@ -141,7 +150,7 @@ export default function Quote() {
                   valueStyle={{ fontSize: 20, fontWeight: 600 }}
                 />
               </Col>
-              <Col xs={12} sm={6} lg={4}>
+              <Col xs={12} sm={6} lg={4} className="fade-in-up delay-300">
                 <Statistic
                   title="最高"
                   value={quote.high}
@@ -149,7 +158,7 @@ export default function Quote() {
                   valueStyle={{ fontSize: 20, fontWeight: 600, color: '#ff4d4f' }}
                 />
               </Col>
-              <Col xs={12} sm={6} lg={4}>
+              <Col xs={12} sm={6} lg={4} className="fade-in-up delay-400">
                 <Statistic
                   title="最低"
                   value={quote.low}
@@ -157,7 +166,7 @@ export default function Quote() {
                   valueStyle={{ fontSize: 20, fontWeight: 600, color: '#52c41a' }}
                 />
               </Col>
-              <Col xs={12} sm={6} lg={3}>
+              <Col xs={12} sm={6} lg={3} className="fade-in-up delay-500">
                 <Statistic
                   title="昨收"
                   value={quote.prev_close}
@@ -165,7 +174,7 @@ export default function Quote() {
                   valueStyle={{ fontSize: 20, fontWeight: 600 }}
                 />
               </Col>
-              <Col xs={12} sm={6} lg={3}>
+              <Col xs={12} sm={6} lg={3} className="fade-in-up delay-500">
                 {quote.turnover !== undefined && (
                   <Statistic
                     title="换手率"
@@ -181,7 +190,7 @@ export default function Quote() {
             <Divider />
 
             <Row gutter={[24, 24]}>
-              <Col xs={12} sm={8}>
+              <Col xs={12} sm={8} className="fade-in-up delay-100">
                 <Statistic
                   title="成交量"
                   value={quote.volume}
@@ -189,7 +198,7 @@ export default function Quote() {
                   valueStyle={{ fontSize: 18, fontWeight: 600, color: '#1890ff' }}
                 />
               </Col>
-              <Col xs={12} sm={8}>
+              <Col xs={12} sm={8} className="fade-in-up delay-200">
                 <Statistic
                   title="成交额"
                   value={(quote.amount / 100000000).toFixed(2)}
@@ -197,7 +206,7 @@ export default function Quote() {
                   valueStyle={{ fontSize: 18, fontWeight: 600, color: '#1890ff' }}
                 />
               </Col>
-              <Col xs={12} sm={8}>
+              <Col xs={12} sm={8} className="fade-in-up delay-300">
                 <Statistic
                   title="振幅"
                   value={((quote.high - quote.low) / quote.prev_close * 100).toFixed(2)}
@@ -217,6 +226,7 @@ export default function Quote() {
             }
             extra={<span style={{ color: '#8c8c8c' }}>共 {dailyData.length} 条数据</span>}
             hoverable
+            className="interactive-card fade-in-up delay-200"
           >
             <div
               style={{
@@ -243,13 +253,12 @@ export default function Quote() {
         </>
       )}
 
-      {!loading && !quote && symbol && (
-        <Card style={{ textAlign: 'center', padding: '60px 0' }}>
-          <SearchOutlined style={{ fontSize: 64, color: '#d9d9d9', marginBottom: 16 }} />
-          <p style={{ fontSize: 18, color: '#8c8c8c' }}>
-            请输入股票代码开始查询
-          </p>
-        </Card>
+      {!loading && !quote && (
+        <EmptyState
+          type="search"
+          title="开始查询"
+          description="请输入股票代码查询实时行情"
+        />
       )}
     </div>
   );
