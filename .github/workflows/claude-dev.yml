@@ -1,0 +1,78 @@
+name: Claude Auto Development
+
+on:
+  issues:
+    types: [opened, labeled]
+  workflow_dispatch:
+    inputs:
+      task:
+        description: '开发任务描述'
+        required: true
+        type: string
+
+jobs:
+  claude-task:
+    if: contains(github.event.issue.labels.*.name, 'claude-task') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install anthropic requests PyGithub
+
+      - name: Run Claude Development Task
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          TASK_DESCRIPTION: ${{ github.event.inputs.task }}
+        run: |
+          python scripts/claude_auto_dev.py
+
+      - name: Create Pull Request
+        if: success()
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'feat: Claude auto development task'
+          title: '🤖 Auto: ${{ github.event.issue.title || github.event.inputs.task }}'
+          body: |
+            ## 🤖 Claude 自动开发任务
+
+            **任务来源**: ${{ github.event.issue.html_url || '手动触发' }}
+
+            **任务描述**:
+            ${{ github.event.issue.body || github.event.inputs.task }}
+
+            ---
+
+            ⚠️ **请仔细审查代码变更**
+
+            此 PR 由 Claude AI 自动生成，请在合并前：
+            - 检查代码质量
+            - 运行测试
+            - 验证功能正确性
+
+            Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+          branch: claude-auto-dev-${{ github.run_number }}
+          delete-branch: true
+
+      - name: Comment on Issue
+        if: success() && github.event.issue.number
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ 任务已完成！PR 已自动创建，请查看并审核。'
+            })
