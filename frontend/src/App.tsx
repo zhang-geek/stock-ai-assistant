@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Layout, Menu } from 'antd';
 import {
   HomeOutlined,
@@ -11,6 +11,7 @@ import {
   DollarOutlined,
   StarOutlined,
   RiseOutlined,
+  StockOutlined,
 } from '@ant-design/icons';
 import Dashboard from './pages/Dashboard';
 import Quote from './pages/Quote';
@@ -22,6 +23,7 @@ import Style from './pages/Style';
 import Paper from './pages/Paper';
 import Financial from './pages/Financial';
 import Cost from './pages/Cost';
+import './App.css';
 
 const { Header, Sider, Content } = Layout;
 
@@ -38,33 +40,52 @@ const menuItems = [
   { key: '/cost', icon: <DollarOutlined />, label: <Link to="/cost">费用统计</Link> },
 ];
 
+function AppContent() {
+  const location = useLocation();
+
+  return (
+    <Layout style={{ minHeight: '100vh' }}>
+      <Header className="app-header">
+        <div className="header-content">
+          <div className="logo-section">
+            <StockOutlined className="logo-icon" />
+            <span className="logo-text">A股AI助手</span>
+          </div>
+          <div className="header-subtitle">智能投资分析平台</div>
+        </div>
+      </Header>
+      <Layout>
+        <Sider width={220} className="app-sider">
+          <Menu
+            mode="inline"
+            items={menuItems}
+            selectedKeys={[location.pathname]}
+            className="app-menu"
+          />
+        </Sider>
+        <Content className="app-content">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/quote" element={<Quote />} />
+            <Route path="/chat" element={<Chat />} />
+            <Route path="/market" element={<Market />} />
+            <Route path="/sentiment" element={<Sentiment />} />
+            <Route path="/backtest" element={<Backtest />} />
+            <Route path="/style" element={<Style />} />
+            <Route path="/paper" element={<Paper />} />
+            <Route path="/financial" element={<Financial />} />
+            <Route path="/cost" element={<Cost />} />
+          </Routes>
+        </Content>
+      </Layout>
+    </Layout>
+  );
+}
+
 function App() {
   return (
     <BrowserRouter>
-      <Layout style={{ minHeight: '100vh' }}>
-        <Header style={{ color: 'white', fontSize: '20px', fontWeight: 'bold' }}>
-          A股AI助手
-        </Header>
-        <Layout>
-          <Sider width={200} theme="light">
-            <Menu mode="inline" items={menuItems} defaultSelectedKeys={['/']} />
-          </Sider>
-          <Content style={{ padding: '24px', background: '#f0f2f5' }}>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/quote" element={<Quote />} />
-              <Route path="/chat" element={<Chat />} />
-              <Route path="/market" element={<Market />} />
-              <Route path="/sentiment" element={<Sentiment />} />
-              <Route path="/backtest" element={<Backtest />} />
-              <Route path="/style" element={<Style />} />
-              <Route path="/paper" element={<Paper />} />
-              <Route path="/financial" element={<Financial />} />
-              <Route path="/cost" element={<Cost />} />
-            </Routes>
-          </Content>
-        </Layout>
-      </Layout>
+      <AppContent />
     </BrowserRouter>
   );
 }

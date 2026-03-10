@@ -1,0 +1,23 @@
+[     220ms] [ERROR] Warning: [antd: Space] `direction` is deprecated. Please use `orientation` instead. @ http://localhost:5173/node_modules/.vite/deps/chunk-FQDH54BJ.js?v=faf97035:1247
+[   15410ms] [ERROR] Warning: [antd: Spin] `tip` is deprecated. Please use `description` instead. @ http://localhost:5173/node_modules/.vite/deps/chunk-FQDH54BJ.js?v=faf97035:1247
+[   16387ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/api/quote/daily/000001?start=&end=&adjust=qfq:0
+[   16388ms] [ERROR] AxiosError: Request failed with status code 500
+    at settle (http://localhost:5173/node_modules/.vite/deps/axios.js?v=da462dcb:1319:7)
+    at XMLHttpRequest.onloadend (http://localhost:5173/node_modules/.vite/deps/axios.js?v=da462dcb:1682:7)
+    at Axios.request (http://localhost:5173/node_modules/.vite/deps/axios.js?v=da462dcb:2328:41)
+    at async Promise.all (index 1)
+    at async handleSearch (http://localhost:5173/src/pages/Quote.tsx?t=1773160892677:17:36) @ http://localhost:5173/src/pages/Quote.tsx?t=1773160892677:31
+[   25656ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/api/quote/daily/000001?start=&end=&adjust=qfq:0
+[   25657ms] [ERROR] AxiosError: Request failed with status code 500
+    at settle (http://localhost:5173/node_modules/.vite/deps/axios.js?v=da462dcb:1319:7)
+    at XMLHttpRequest.onloadend (http://localhost:5173/node_modules/.vite/deps/axios.js?v=da462dcb:1682:7)
+    at Axios.request (http://localhost:5173/node_modules/.vite/deps/axios.js?v=da462dcb:2328:41)
+    at async Promise.all (index 1)
+    at async handleSearch (http://localhost:5173/src/pages/Quote.tsx?t=1773160892677:17:36) @ http://localhost:5173/src/pages/Quote.tsx?t=1773160892677:31
+[   65033ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/api/quote/daily/000001?start=&end=&adjust=qfq:0
+[   65034ms] [ERROR] AxiosError: Request failed with status code 500
+    at settle (http://localhost:5173/node_modules/.vite/deps/axios.js?v=da462dcb:1319:7)
+    at XMLHttpRequest.onloadend (http://localhost:5173/node_modules/.vite/deps/axios.js?v=da462dcb:1682:7)
+    at Axios.request (http://localhost:5173/node_modules/.vite/deps/axios.js?v=da462dcb:2328:41)
+    at async Promise.all (index 1)
+    at async handleSearch (http://localhost:5173/src/pages/Quote.tsx?t=1773160892677:17:36) @ http://localhost:5173/src/pages/Quote.tsx?t=1773160892677:31

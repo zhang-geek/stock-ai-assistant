@@ -1,0 +1,2 @@
+[     350ms] [ERROR] Warning: [antd: Spin] `tip` is deprecated. Please use `description` instead. @ http://localhost:5173/node_modules/.vite/deps/chunk-FQDH54BJ.js?v=faf97035:1247
+[     742ms] [ERROR] Warning: [antd: Statistic] `valueStyle` is deprecated. Please use `styles.content` instead. @ http://localhost:5173/node_modules/.vite/deps/chunk-FQDH54BJ.js?v=faf97035:1247

@@ -1,0 +1,1 @@
+[     207ms] [ERROR] Warning: [antd: Space] `direction` is deprecated. Please use `orientation` instead. @ http://localhost:5173/node_modules/.vite/deps/chunk-FQDH54BJ.js?v=faf97035:1247
