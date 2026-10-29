@@ -145,8 +145,8 @@ class TestTradeAnalyzer:
         assert stats["paired_count"] == 2
         # 1 win (平安银行 +6.67%), 1 loss (茅台 -1.79%) → 50%
         assert stats["win_rate"] == pytest.approx(0.5)
-        assert stats["max_profit"] == pytest.approx((11.20 - 10.50) / 10.50)
-        assert stats["max_loss"] == pytest.approx((1650 - 1680) / 1680)
+        assert stats["max_profit"] == pytest.approx((700 - 5.25 - 5.60) / (10500 + 5.25))
+        assert stats["max_loss"] == pytest.approx((-3000 - 8.40 - 8.25) / (168000 + 8.40))
         assert stats["profit_loss_ratio"] > 0
         assert "000001" in stats["most_traded"]
 
@@ -156,3 +156,84 @@ class TestTradeAnalyzer:
         analyzer = TradeAnalyzer()
         stats = analyzer.get_statistics()
         assert stats["total_trades"] == 0
+
+    def test_partial_sell_keeps_fifo_remainder(self, db_session):
+        """部分卖出后，剩余数量应继续参与后续 FIFO 配对。"""
+        session = db_session()
+        session.add_all([
+            Trade(symbol="000001", name="平安银行", direction="buy", price=10,
+                  quantity=1000, amount=10000, fee=10,
+                  trade_time=datetime(2024, 1, 2)),
+            Trade(symbol="000001", name="平安银行", direction="sell", price=11,
+                  quantity=200, amount=2200, fee=2,
+                  trade_time=datetime(2024, 1, 10)),
+            Trade(symbol="000001", name="平安银行", direction="sell", price=12,
+                  quantity=800, amount=9600, fee=8,
+                  trade_time=datetime(2024, 2, 10)),
+        ])
+        session.commit()
+        session.close()
+
+        from stock_assistant.backtest.analyzer import TradeAnalyzer
+        stats = TradeAnalyzer().get_statistics()
+
+        assert stats["paired_count"] == 2
+        assert stats["realized_pnl"] == pytest.approx(1780)
+        assert stats["monthly_pnl"]["2024-01"] == pytest.approx(196)
+        assert stats["monthly_pnl"]["2024-02"] == pytest.approx(1584)
+
+    def test_multiple_buys_are_matched_fifo(self, db_session):
+        """多次加仓时，卖出应先消耗最早买入的 lot。"""
+        session = db_session()
+        session.add_all([
+            Trade(symbol="000002", name="万科A", direction="buy", price=10,
+                  quantity=100, amount=1000, fee=1, trade_time=datetime(2024, 1, 1)),
+            Trade(symbol="000002", name="万科A", direction="buy", price=20,
+                  quantity=100, amount=2000, fee=2, trade_time=datetime(2024, 1, 2)),
+            Trade(symbol="000002", name="万科A", direction="sell", price=15,
+                  quantity=150, amount=2250, fee=1.5, trade_time=datetime(2024, 1, 3)),
+        ])
+        session.commit()
+        session.close()
+
+        from stock_assistant.backtest.analyzer import TradeAnalyzer
+        stats = TradeAnalyzer().get_statistics()
+
+        assert stats["paired_count"] == 2
+        assert stats["realized_pnl"] == pytest.approx(246.5)
+
+    def test_unrealized_lot_is_not_counted(self, db_session):
+        """未卖出的持仓不应进入已实现收益。"""
+        session = db_session()
+        session.add_all([
+            Trade(symbol="000003", name="示例", direction="buy", price=10,
+                  quantity=100, amount=1000, fee=1, trade_time=datetime(2024, 1, 1)),
+            Trade(symbol="000003", name="示例", direction="sell", price=12,
+                  quantity=40, amount=480, fee=0.4, trade_time=datetime(2024, 1, 2)),
+        ])
+        session.commit()
+        session.close()
+
+        from stock_assistant.backtest.analyzer import TradeAnalyzer
+        stats = TradeAnalyzer().get_statistics()
+
+        assert stats["paired_count"] == 1
+        assert stats["realized_pnl"] == pytest.approx(79.2)
+
+    def test_fees_are_included_in_return_and_monthly_pnl(self, db_session):
+        session = db_session()
+        session.add_all([
+            Trade(symbol="000004", name="手续费测试", direction="buy", price=10,
+                  quantity=100, amount=1000, fee=10, trade_time=datetime(2024, 3, 1)),
+            Trade(symbol="000004", name="手续费测试", direction="sell", price=11,
+                  quantity=100, amount=1100, fee=20, trade_time=datetime(2024, 3, 2)),
+        ])
+        session.commit()
+        session.close()
+
+        from stock_assistant.backtest.analyzer import TradeAnalyzer
+        stats = TradeAnalyzer().get_statistics()
+
+        assert stats["realized_pnl"] == pytest.approx(70)
+        assert stats["monthly_pnl"]["2024-03"] == pytest.approx(70)
+        assert stats["avg_profit"] == pytest.approx(70 / 1010)
