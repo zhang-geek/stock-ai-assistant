@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import defaultdict, deque
 
 
 from stock_assistant.core.database import get_session
@@ -25,25 +25,42 @@ class TradeAnalyzer:
             total_trades = len(trades)
 
             # 按股票分组配对买卖
-            buys: dict[str, list] = defaultdict(list)
+            buys: dict[str, deque] = defaultdict(deque)
             paired: list[dict] = []
 
             for t in trades:
                 if t.direction == "buy":
-                    buys[t.symbol].append(t)
-                elif t.direction == "sell" and buys[t.symbol]:
-                    buy_trade = buys[t.symbol].pop(0)
-                    profit_rate = (t.price - buy_trade.price) / buy_trade.price
-                    paired.append({
-                        "symbol": t.symbol,
-                        "name": t.name or buy_trade.name,
-                        "buy_price": buy_trade.price,
-                        "sell_price": t.price,
-                        "quantity": min(buy_trade.quantity, t.quantity),
-                        "profit_rate": profit_rate,
-                        "buy_time": buy_trade.trade_time,
-                        "sell_time": t.trade_time,
-                    })
+                    # Keep the remaining quantity in each FIFO lot.  A sell can
+                    # consume only part of a lot, so the lot must stay queued.
+                    buys[t.symbol].append({"trade": t, "remaining": t.quantity})
+                elif t.direction == "sell":
+                    remaining_sell = t.quantity
+                    sell_fee_per_share = (t.fee or 0) / t.quantity if t.quantity else 0
+                    while remaining_sell > 0 and buys[t.symbol]:
+                        lot = buys[t.symbol][0]
+                        buy_trade = lot["trade"]
+                        quantity = min(lot["remaining"], remaining_sell)
+                        buy_fee = (buy_trade.fee or 0) * quantity / buy_trade.quantity
+                        sell_fee = sell_fee_per_share * quantity
+                        gross_pnl = (t.price - buy_trade.price) * quantity
+                        net_pnl = gross_pnl - buy_fee - sell_fee
+                        cost_basis = buy_trade.price * quantity + buy_fee
+                        profit_rate = net_pnl / cost_basis if cost_basis else 0
+                        paired.append({
+                            "symbol": t.symbol,
+                            "name": t.name or buy_trade.name,
+                            "buy_price": buy_trade.price,
+                            "sell_price": t.price,
+                            "quantity": quantity,
+                            "profit": net_pnl,
+                            "profit_rate": profit_rate,
+                            "buy_time": buy_trade.trade_time,
+                            "sell_time": t.trade_time,
+                        })
+                        lot["remaining"] -= quantity
+                        remaining_sell -= quantity
+                        if lot["remaining"] == 0:
+                            buys[t.symbol].popleft()
 
             # 统计指标
             if paired:
@@ -72,7 +89,7 @@ class TradeAnalyzer:
             monthly: dict[str, float] = defaultdict(float)
             for p in paired:
                 month_key = p["sell_time"].strftime("%Y-%m")
-                monthly[month_key] += p["profit_rate"] * p["quantity"] * p["buy_price"]
+                monthly[month_key] += p["profit"]
 
             return {
                 "total_trades": total_trades,
@@ -83,6 +100,7 @@ class TradeAnalyzer:
                 "max_loss": max_loss,
                 "profit_loss_ratio": profit_loss_ratio,
                 "most_traded": most_traded,
+                "realized_pnl": sum(p["profit"] for p in paired),
                 "monthly_pnl": dict(sorted(monthly.items())),
             }
         finally:
